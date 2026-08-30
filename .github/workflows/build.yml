@@ -2,7 +2,7 @@ name: Build Arch kernel package
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'update/**']
     tags: ['v*']
   pull_request:
   workflow_dispatch:
