@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+readonly repo_dir=$(cd -- "${script_dir}/.." && pwd)
+readonly arch_repo=https://gitlab.archlinux.org/archlinux/packaging/packages/linux.git
+readonly tracked_commit=$(<"${repo_dir}/ARCH_PACKAGING_COMMIT")
+
+if [[ ! ${tracked_commit} =~ ^[0-9a-f]{40}$ ]]; then
+    printf 'Error: ARCH_PACKAGING_COMMIT does not contain a full Git commit ID.\n' >&2
+    exit 2
+fi
+
+latest_commit=$(git ls-remote "${arch_repo}" HEAD | awk 'NR == 1 { print $1 }')
+if [[ ! ${latest_commit} =~ ^[0-9a-f]{40}$ ]]; then
+    printf 'Error: could not resolve the Arch linux packaging HEAD.\n' >&2
+    exit 2
+fi
+
+printf 'Tracked Arch packaging commit: %s\n' "${tracked_commit}"
+printf 'Latest Arch packaging commit:  %s\n' "${latest_commit}"
+
+if [[ ${latest_commit} == "${tracked_commit}" ]]; then
+    printf 'The tracked Arch packaging commit is current.\n'
+    exit 0
+fi
+
+printf '\nArch packaging changed; review before updating this kernel package.\n'
+printf 'Compare: %s/-/compare/%s...%s\n' \
+    "${arch_repo%.git}" "${tracked_commit}" "${latest_commit}"
+exit 10

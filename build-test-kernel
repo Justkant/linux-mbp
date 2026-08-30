@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+readonly required_free_kib=$((25 * 1024 * 1024))
+
+cd -- "${script_dir}"
+
+missing=$(pacman -T bc pahole rust rust-bindgen rust-src 2>/dev/null || true)
+if [[ -n ${missing} ]]; then
+    printf 'Missing build dependencies:\n%s\n\n' "${missing}" >&2
+    printf 'Install them first with:\n' >&2
+    printf '  sudo pacman -S --needed bc pahole rust rust-bindgen rust-src\n' >&2
+    exit 2
+fi
+
+available_kib=$(df -Pk -- "${script_dir}" | awk 'NR == 2 { print $4 }')
+if (( available_kib < required_free_kib )); then
+    printf 'Error: kernel build requires at least 25 GiB free; found %s KiB.\n' \
+        "${available_kib}" >&2
+    exit 1
+fi
+
+jobs=${MBP_KERNEL_JOBS:-6}
+if [[ ! ${jobs} =~ ^[1-8]$ ]]; then
+    printf 'Error: MBP_KERNEL_JOBS must be an integer from 1 through 8.\n' >&2
+    exit 2
+fi
+
+keyring_dir=$(mktemp -d /tmp/linux-mbp-suspend-keyring.XXXXXX)
+cleanup() {
+    rm -r -- "${keyring_dir}"
+}
+trap cleanup EXIT
+
+chmod 0700 "${keyring_dir}"
+export GNUPGHOME=${keyring_dir}
+gpg --batch --no-autostart --quiet --import keys/pgp/*.asc
+
+export MAKEFLAGS="-j${jobs}"
+printf 'Building linux-mbp-suspend with %s parallel jobs.\n' "${jobs}"
+makepkg --cleanbuild --clean
+
+printf '\nBuilt package:\n'
+makepkg --packagelist

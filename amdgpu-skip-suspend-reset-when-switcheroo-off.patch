@@ -1,0 +1,36 @@
+From: local diagnostic patch
+Subject: [PATCH] drm/amdgpu: skip suspend reset for switcheroo-off GPUs
+
+vga_switcheroo manual OFF asks amdgpu to suspend the inactive GPU, then
+asks the platform handler to cut its power.  The DRM device remains bound
+and its switch_power_state is set to DRM_SWITCH_POWER_OFF.
+
+amdgpu_device_prepare(), amdgpu_device_suspend(), and
+amdgpu_device_resume() already avoid hardware access in this state.  Apply
+the same rule to the noirq suspend callback.  Otherwise a deep suspend
+attempts to reset a physically absent GPU and can abort system suspend.
+
+This is a local test patch for the MacBookPro11,5 investigation.  Add a
+proper Signed-off-by line and confirm the Fixes tag with git blame before
+upstream submission.
+
+Likely-Fixes: daf8de0874ab5 ("drm/amdgpu: always reset the asic in suspend (v2)")
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+@@ -2639,6 +2639,9 @@ static int amdgpu_pmops_suspend_noirq(struct device *dev)
+ 	struct amdgpu_device *adev = drm_to_adev(drm_dev);
+ 	int r;
+ 
++	if (drm_dev->switch_power_state == DRM_SWITCH_POWER_OFF)
++		return 0;
++
+ 	if (amdgpu_acpi_should_gpu_reset(adev)) {
+ 		amdgpu_device_lock_reset_domain(adev->reset_domain);
+ 		r = amdgpu_asic_reset(adev);
+-- 
+2.53.0

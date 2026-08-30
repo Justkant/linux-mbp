@@ -1,0 +1,65 @@
+name: Check Arch kernel packaging
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out packaging repository
+        uses: actions/checkout@v7
+
+      - name: Compare with Arch packaging HEAD
+        id: upstream
+        shell: bash
+        run: |
+          set +e
+          output=$(./scripts/check-arch-update 2>&1)
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if (( status == 0 )); then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          elif (( status == 10 )); then
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+            {
+              echo 'details<<EOF'
+              printf '%s\n' "$output"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          else
+            exit "$status"
+          fi
+
+      - name: Open one update issue
+        if: steps.upstream.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DETAILS: ${{ steps.upstream.outputs.details }}
+        shell: bash
+        run: |
+          title='Arch linux packaging has changed'
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq 'length')
+          if (( existing == 0 )); then
+            body_file="$RUNNER_TEMP/linux-mbp-upstream-update.md"
+            {
+              echo 'A scheduled check found an upstream packaging change.'
+              echo
+              echo 'Review it and update the pinned commit, PKGBUILD, config, checksums, and keys together.'
+              echo
+              echo '```text'
+              printf '%s\n' "$DETAILS"
+              echo '```'
+            } > "$body_file"
+            gh issue create \
+              --title "$title" \
+              --body-file "$body_file"
+          fi

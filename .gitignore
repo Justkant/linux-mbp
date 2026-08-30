@@ -1,0 +1,9 @@
+/linux-*.tar.*
+/linux-v*-arch*.patch.zst*
+/src/
+/pkg/
+/*.pkg.tar.*
+/*.pkg.tar.*.sig
+/*.log
+/SHA256SUMS
+/refind_linux.conf.*

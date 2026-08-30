@@ -1,0 +1,67 @@
+name: Build Arch kernel package
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kernel-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out packaging repository
+        uses: actions/checkout@v7
+
+      - name: Reclaim space on the disposable runner
+        shell: bash
+        run: |
+          df -h /
+          sudo rm -rf -- \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/.ghcup \
+            /usr/local/lib/android \
+            /usr/share/dotnet
+          df -h /
+
+      - name: Require enough free space
+        shell: bash
+        run: |
+          available_kib=$(df -Pk -- "$GITHUB_WORKSPACE" | awk 'NR == 2 { print $4 }')
+          required_kib=$((25 * 1024 * 1024))
+          if (( available_kib < required_kib )); then
+            printf 'Need at least 25 GiB free; runner has %s KiB.\n' "$available_kib" >&2
+            exit 1
+          fi
+
+      - name: Build in a clean Arch Linux container
+        shell: bash
+        run: |
+          docker pull archlinux:base-devel
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --workdir /workspace \
+            archlinux:base-devel \
+            ./ci/build-package
+
+      - name: Upload package and checksum
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-mbp-${{ github.sha }}
+          path: |
+            linux-mbp-suspend-*.pkg.tar.zst
+            SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
