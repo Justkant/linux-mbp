@@ -3,6 +3,8 @@ set -euo pipefail
 
 readonly repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 readonly keyring_dir=/tmp/linux-mbp-gnupg
+readonly ccache_dir=${CCACHE_DIR:-}
+readonly ccache_max_size=${CCACHE_MAXSIZE:-5G}
 
 if (( EUID != 0 )); then
     printf 'Error: this script must run as root inside the disposable Arch CI container.\n' >&2
@@ -10,7 +12,7 @@ if (( EUID != 0 )); then
 fi
 
 pacman -Syu --noconfirm --needed \
-    archlinux-keyring base-devel bc binutils cpio gettext glibc libelf libgcc \
+    archlinux-keyring base-devel bc binutils ccache cpio gettext glibc libelf libgcc \
     openssl pahole perl python rust rust-bindgen rust-src tar xxhash xz zlib zstd
 
 repo_uid=$(stat -c %u "${repo_dir}")
@@ -36,14 +38,35 @@ else
 fi
 install -d -m 0700 -o "${build_user}" -g "${build_group}" "${keyring_dir}"
 
+printf 'Container CPUs: %s\n' "$(nproc)"
+free -h
+
+if [[ -n ${ccache_dir} ]]; then
+    install -d -m 0755 -o "${build_user}" -g "${build_group}" "${ccache_dir}"
+    sed -i 's/!ccache/ccache/' /etc/makepkg.conf
+    runuser -u "${build_user}" -- env CCACHE_DIR="${ccache_dir}" \
+        ccache --max-size="${ccache_max_size}"
+    runuser -u "${build_user}" -- env CCACHE_DIR="${ccache_dir}" \
+        ccache --zero-stats
+fi
+
 runuser -u "${build_user}" -- env GNUPGHOME="${keyring_dir}" \
     gpg --batch --no-autostart --quiet --import "${repo_dir}"/keys/pgp/*.asc
 
 runuser -u "${build_user}" -- env \
     GNUPGHOME="${keyring_dir}" \
+    CCACHE_DIR="${ccache_dir}" \
+    CCACHE_BASEDIR="${repo_dir}" \
+    CCACHE_NOHASHDIR=true \
     MAKEFLAGS="-j$(nproc)" \
     REPO_DIR="${repo_dir}" \
     bash -c 'cd -- "$REPO_DIR"; exec makepkg --cleanbuild --clean --noconfirm'
+
+if [[ -n ${ccache_dir} ]]; then
+    printf '\nCompiler cache statistics:\n'
+    runuser -u "${build_user}" -- env CCACHE_DIR="${ccache_dir}" \
+        ccache --show-stats
+fi
 
 mapfile -t packages < <(
     runuser -u "${build_user}" -- env REPO_DIR="${repo_dir}" \

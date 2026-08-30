@@ -33,11 +33,19 @@ Every push, pull request, tag, and manual dispatch runs
 - imports the PGP keys shipped by Arch's package repository;
 - verifies the signed kernel and Arch patchset plus every checksum;
 - runs an unprivileged `makepkg` build inside the container;
+- restores a bounded 5 GiB `ccache` and reports its hit rate;
 - uploads the package and `SHA256SUMS` for seven days.
 
 GitHub's standard runner starts with limited free disk. The workflow requires
 25 GiB after its explicit cleanup and fails before compilation if that cannot be
 provided. All destructive cleanup commands target only the ephemeral runner.
+
+The compiler cache uses makepkg's native `ccache` build environment. Its key
+includes the kernel configuration, `PKGBUILD`, and local patch series, while a
+broader fallback permits safe content-addressed reuse across nearby revisions.
+The complete mutable kernel source/build directory is never cached. A first run
+populates the cache; later runs report direct/preprocessed hits and misses in
+the build log.
 
 Download an artifact from the successful workflow run and verify it before
 installation:

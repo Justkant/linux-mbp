@@ -26,6 +26,8 @@ jobs:
       - name: Reclaim space on the disposable runner
         shell: bash
         run: |
+          printf 'Host CPUs: %s\n' "$(nproc)"
+          free -h
           df -h /
           sudo rm -rf -- \
             /opt/ghc \
@@ -34,6 +36,15 @@ jobs:
             /usr/local/lib/android \
             /usr/share/dotnet
           df -h /
+
+      - name: Restore compiler cache
+        id: ccache
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/linux-mbp-ccache
+          key: ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('config.x86_64', 'PKGBUILD', '*.patch') }}
+          restore-keys: |
+            ccache-v1-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Require enough free space
         shell: bash
@@ -50,6 +61,9 @@ jobs:
         run: |
           docker pull archlinux:base-devel
           docker run --rm \
+            --env CCACHE_DIR=/ccache \
+            --env CCACHE_MAXSIZE=5G \
+            --volume "$RUNNER_TEMP/linux-mbp-ccache:/ccache" \
             --volume "$GITHUB_WORKSPACE:/workspace" \
             --workdir /workspace \
             archlinux:base-devel \
