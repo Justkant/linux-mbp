@@ -1,7 +1,7 @@
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
 pkgbase=linux-mbp-suspend
-pkgver=7.1.11.arch1
+pkgver=7.2.3.arch1
 pkgrel=1
 pkgdesc='Linux with MacBookPro11,5 suspend/resume fixes'
 url='https://github.com/archlinux/linux'
@@ -49,18 +49,18 @@ validpgpkeys=(
   647F28654894E3BD457199BE38DBBDC86092693E  # Greg Kroah-Hartman
   83BC8889351B5DEBBB68416EB8AC08600F108CDF  # Jan Alexander Steffens (heftig)
 )
-b2sums=('389da9454f5400639802909ef04069ae5a9d5c3a938feff04d770fb3b47cf152f0cde2ea5ce57addb3e8c1ec3bd3ec3a996c4b65d5d205595db96e61a15db50d'
+b2sums=('a1d10f1b4422f55c9c87fec0d319fd3dfaf8992f40f9c3d6da1d74e6e78ef220c24cdcd5b689070fb4a287070d1cb3659dc9ea79e5500027854f32c1326c67f7'
         'SKIP'
-        '061dfec9ad030980e980c6108e4b60dfca8daaf796987bb976bfac0b79f3a84fcb90cfb394a647e904fb5236b3d4837d090e9025c59eddfb57d9a673a38f40d8'
+        'ee03773babee5126fb061bd7c9fb3b402c6bc96d49bce0a91a8b7a37f544b89ed38b2f4f71543dea355c965a80dfc264e9c6625da7ee5e3e7ada91441f4cf52c'
         'SKIP'
         'fb95e9ca15361f1e66ff3acafca9d27661ae1405fcc4154bc47495ad027b3f16b354e26b2eaf80d9befa3540a24818745e0228e385868050961bce72a24d6a0f'
         'fac0d44462329dec798b9f24cf1694c2a64e0880ee85db5e55e407907fa5d79f770ba73c59fd4b4b3d3350ad84439d0d50a4eeb47aede64fdcd5cac549d3fadb')
-b2sums_x86_64=('59ed9ed7b9f1a56edaa3f14a715d56ca44ec1351920a7b56875e8b28fe03b2af15ca13a92254b09024db655f6482ac22807efff437ba8822a04f5a9a3f39783a')
+b2sums_x86_64=('da56ce9b2f28b75436c52afbc16913027796d98b467575920d82e15fb626689438e69cc07fedde77a96f2cb2ce10b510a873c43f43105ccec9a44e656b0624e1')
 
 # https://www.kernel.org/pub/linux/kernel/v7.x/sha256sums.asc
-sha256sums=('3029540d8f2ec75bee5cbdb7c2a0daa60bffa1d105c82ecb99b53432f6351afc'
+sha256sums=('8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03'
             'SKIP'
-            '65ac652435227139d1d05ee1f1f6d1383a2ef80f325006440229ef225423a3c6'
+            '8c917e7ba5cbd93491f18d11d6adbdcb1ea64fd6f8b47a0fce5d04a0ac9aa4f6'
             'SKIP'
             '4c5084e84f10b4886106bcc46d66d9b1d67250ce41766ba180fc5e3d04c3f09b'
             '6577329bcae84114ba77080b0cbc082c9e23246d5a02163f414d0a0d86abafe6')
