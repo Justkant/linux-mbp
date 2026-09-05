@@ -2,7 +2,7 @@
 
 pkgbase=linux-mbp-suspend
 pkgver=7.2.3.arch1
-pkgrel=1
+pkgrel=2
 pkgdesc='Linux with MacBookPro11,5 suspend/resume fixes'
 url='https://github.com/archlinux/linux'
 arch=(
@@ -42,6 +42,7 @@ source=(
   $url/releases/download/$_srctag/linux-$_srctag.patch.zst{,.sig}
   amdgpu-skip-suspend-reset-when-switcheroo-off.patch
   mtrr-expedite-cache-init-on-resume.patch
+  amdgpu-uvd-check-validation-status-register.patch
 )
 source_x86_64=(config.x86_64)
 validpgpkeys=(
@@ -54,7 +55,8 @@ b2sums=('a1d10f1b4422f55c9c87fec0d319fd3dfaf8992f40f9c3d6da1d74e6e78ef220c24cdcd
         'ee03773babee5126fb061bd7c9fb3b402c6bc96d49bce0a91a8b7a37f544b89ed38b2f4f71543dea355c965a80dfc264e9c6625da7ee5e3e7ada91441f4cf52c'
         'SKIP'
         'fb95e9ca15361f1e66ff3acafca9d27661ae1405fcc4154bc47495ad027b3f16b354e26b2eaf80d9befa3540a24818745e0228e385868050961bce72a24d6a0f'
-        'fac0d44462329dec798b9f24cf1694c2a64e0880ee85db5e55e407907fa5d79f770ba73c59fd4b4b3d3350ad84439d0d50a4eeb47aede64fdcd5cac549d3fadb')
+        'fac0d44462329dec798b9f24cf1694c2a64e0880ee85db5e55e407907fa5d79f770ba73c59fd4b4b3d3350ad84439d0d50a4eeb47aede64fdcd5cac549d3fadb'
+        'b4454e5e769d96ded29ec0fa12dde28e7cc5314462a2ae2c5e670883618e805d97065a7233c9f255f5b8039fb1f393f52e059f507d9b21b50635f63e19b402b1')
 b2sums_x86_64=('da56ce9b2f28b75436c52afbc16913027796d98b467575920d82e15fb626689438e69cc07fedde77a96f2cb2ce10b510a873c43f43105ccec9a44e656b0624e1')
 
 # https://www.kernel.org/pub/linux/kernel/v7.x/sha256sums.asc
@@ -63,7 +65,8 @@ sha256sums=('8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03'
             '8c917e7ba5cbd93491f18d11d6adbdcb1ea64fd6f8b47a0fce5d04a0ac9aa4f6'
             'SKIP'
             '4c5084e84f10b4886106bcc46d66d9b1d67250ce41766ba180fc5e3d04c3f09b'
-            '6577329bcae84114ba77080b0cbc082c9e23246d5a02163f414d0a0d86abafe6')
+            '6577329bcae84114ba77080b0cbc082c9e23246d5a02163f414d0a0d86abafe6'
+            'e907888d7d64da01a6b5b50e9e97f31fc319cb4c5179cc7955bb3b96f40d2e83')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase

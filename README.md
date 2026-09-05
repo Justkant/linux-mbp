@@ -145,3 +145,15 @@ the target code.
 packaging repository. A scheduled read-only check runs weekly and opens one
 GitHub issue when review is needed; it never rewrites packaging or publishes a
 kernel automatically.
+
+## Experimental AMD UVD resume correction
+
+This branch adds a candidate fix for the UVD firmware validation failure seen
+on MacBookPro11,5 in dedicated AMD mode after s2idle. It checks the validation
+PASS bit in UVD_FW_STATUS instead of UVD_FW_START. The existing Intel suspend
+patches are retained. Package revision is 7.2.3.arch1-2.
+
+The candidate passes register-model tests but has not been verified on hardware.
+It does not claim to fix the separate gfx_v6_0 timeout after deep S3. Build with
+the existing GitHub Actions workflow; retain the working kernel package and
+boot files before installing or running an explicitly approved suspend test.
