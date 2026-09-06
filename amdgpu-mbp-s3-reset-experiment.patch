@@ -1,0 +1,58 @@
+From: Local diagnostic candidate
+Subject: [PATCH] drm/amdgpu: add opt-in MacBook pre-S3 reset experiment
+
+The MacBookPro11,5 M370X resumes from s2idle after the UVD correction,
+but deep S3 still fails the gfx ring test after a PCI CONFIG reset.
+Add a default-off diagnostic parameter to isolate the pre-S3 reset from
+the platform S3 transition. This is not a verified permanent workaround.
+
+Restrict the bypass to the exact model and GPU PCI/subsystem IDs, and to
+PM_SUSPEND_MEM. Preserve the switcheroo-OFF guard, runtime PM, hibernation,
+other hardware, and GPU recovery resets. Enabling the unsafe parameter
+marks the kernel tainted; do not mistake that expected marker for a crash.
+
+Apply after amdgpu-skip-suspend-reset-when-switcheroo-off.patch.
+---
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+@@ -34,6 +34,7 @@
+ 
+ #include <linux/cc_platform.h>
+ #include <linux/console.h>
++#include <linux/dmi.h>
+ #include <linux/dynamic_debug.h>
+ #include <linux/module.h>
+ #include <linux/mmu_notifier.h>
+@@ -945,6 +946,13 @@
+  */
+ MODULE_PARM_DESC(reset_method, "GPU reset method (-1 = auto (default), 0 = legacy, 1 = mode0, 2 = mode1, 3 = mode2, 4 = baco/bamaco)");
+ module_param_named_unsafe(reset_method, amdgpu_reset_method, int, 0644);
++
++/* Diagnostic only: default off, restricted to the MacBookPro11,5 M370X. */
++static bool amdgpu_mbp_skip_s3_reset;
++MODULE_PARM_DESC(mbp_skip_s3_reset,
++		"Skip pre-S3 reset on MacBookPro11,5 M370X for diagnosis (default off)");
++module_param_named_unsafe(mbp_skip_s3_reset, amdgpu_mbp_skip_s3_reset, bool, 0600);
++
+ 
+ /**
+  * DOC: bad_page_threshold (int) Bad page threshold is specifies the
+@@ -2656,6 +2664,17 @@
+ 		return 0;
+ 
+ 	if (amdgpu_acpi_should_gpu_reset(adev)) {
++		if (amdgpu_mbp_skip_s3_reset &&
++		    pm_suspend_target_state == PM_SUSPEND_MEM &&
++		    dmi_match(DMI_PRODUCT_NAME, "MacBookPro11,5") &&
++		    adev->pdev->vendor == 0x1002 &&
++		    adev->pdev->device == 0x6821 &&
++		    adev->pdev->subsystem_vendor == 0x106b &&
++		    adev->pdev->subsystem_device == 0x0149) {
++			dev_info(dev, "MBP diagnostic: skipping pre-S3 GPU reset\n");
++			return 0;
++		}
++
+ 		amdgpu_device_lock_reset_domain(adev->reset_domain);
+ 		r = amdgpu_asic_reset(adev);
+ 		amdgpu_device_unlock_reset_domain(adev->reset_domain);

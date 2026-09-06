@@ -157,3 +157,25 @@ The candidate passes register-model tests but has not been verified on hardware.
 It does not claim to fix the separate gfx_v6_0 timeout after deep S3. Build with
 the existing GitHub Actions workflow; retain the working kernel package and
 boot files before installing or running an explicitly approved suspend test.
+
+## Opt-in deep-S3 reset experiment
+
+Revision 7.2.3.arch1-3 retains the UVD candidate and adds a default-off
+`amdgpu.mbp_skip_s3_reset` boolean. Only on MacBookPro11,5 with GPU
+1002:6821 / subsystem 106b:0149, enabling it skips the reset immediately
+before deep S3. The existing switcheroo-OFF guard is retained; GPU recovery
+resets, other hardware, and non-S3 paths are unchanged.
+
+The purpose is to distinguish the pre-S3 reset from platform power sequencing.
+This is not a proven fix: upstream resets before S3 to handle cases where
+suspend aborts and power is retained. Skipping that reset may break recovery
+from an aborted suspend. The unsafe module parameter taints the kernel when
+enabled. Default-off boot behavior is the same as revision 2.
+
+Build remotely with GitHub Actions. After an approved installation and clean
+boot, a separate approved test can set the parameter to Y through sysfs, use
+deep sleep with an RTC alarm, then restore it to N after inspection. Do not
+set it permanently in the boot command line yet. The expected test marker is
+`MBP diagnostic: skipping pre-S3 GPU reset`. Require that marker and a genuine
+S3 resume before interpreting the result. Retain the revision 2 package for
+rollback and s2idle use. No hardware validation has been performed yet.
