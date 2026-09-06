@@ -2,7 +2,7 @@
 
 pkgbase=linux-mbp-suspend
 pkgver=7.2.3.arch1
-pkgrel=3
+pkgrel=4
 pkgdesc='Linux with MacBookPro11,5 suspend/resume fixes'
 url='https://github.com/archlinux/linux'
 arch=(
@@ -44,6 +44,8 @@ source=(
   mtrr-expedite-cache-init-on-resume.patch
   amdgpu-uvd-check-validation-status-register.patch
   amdgpu-mbp-s3-reset-experiment.patch
+  amdgpu-gfx6-initialize-rings-before-cp-start.patch
+  amdgpu-gfx6-clear-rings-on-init.patch
 )
 source_x86_64=(config.x86_64)
 validpgpkeys=(
@@ -58,7 +60,9 @@ b2sums=('a1d10f1b4422f55c9c87fec0d319fd3dfaf8992f40f9c3d6da1d74e6e78ef220c24cdcd
         'fb95e9ca15361f1e66ff3acafca9d27661ae1405fcc4154bc47495ad027b3f16b354e26b2eaf80d9befa3540a24818745e0228e385868050961bce72a24d6a0f'
         'fac0d44462329dec798b9f24cf1694c2a64e0880ee85db5e55e407907fa5d79f770ba73c59fd4b4b3d3350ad84439d0d50a4eeb47aede64fdcd5cac549d3fadb'
         'b4454e5e769d96ded29ec0fa12dde28e7cc5314462a2ae2c5e670883618e805d97065a7233c9f255f5b8039fb1f393f52e059f507d9b21b50635f63e19b402b1'
-        '699af910150c25f0be2fa7fa235fa20a0d12bf34b7540fa2d57310608295d938c09ecf355a412dfbf55f436dec22dd1b734e8112c7c070166f03761054486f59')
+        '699af910150c25f0be2fa7fa235fa20a0d12bf34b7540fa2d57310608295d938c09ecf355a412dfbf55f436dec22dd1b734e8112c7c070166f03761054486f59'
+        'c28006df684aac05bd56ecd3e570473999fb9e0077ee227b6ee75b6cc71dedd27590741cee249548a04f6dec49e96a80c7b2e117acd7ca311a6cefcee318023b'
+        '6a10c5349b28147a741f76255ff02a9123692f9ca03e826a5991e3e2345cb48ce442516cc4a577936cb8e0b8ee288cdfd87da1ab15942e7580663ad8a53a8318')
 b2sums_x86_64=('da56ce9b2f28b75436c52afbc16913027796d98b467575920d82e15fb626689438e69cc07fedde77a96f2cb2ce10b510a873c43f43105ccec9a44e656b0624e1')
 
 # https://www.kernel.org/pub/linux/kernel/v7.x/sha256sums.asc
@@ -69,7 +73,9 @@ sha256sums=('8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03'
             '4c5084e84f10b4886106bcc46d66d9b1d67250ce41766ba180fc5e3d04c3f09b'
             '6577329bcae84114ba77080b0cbc082c9e23246d5a02163f414d0a0d86abafe6'
             'e907888d7d64da01a6b5b50e9e97f31fc319cb4c5179cc7955bb3b96f40d2e83'
-            '84dde49212f6e2a649d583044d1b98275270970d8c16c5fbf19e3647eb357d95')
+            '84dde49212f6e2a649d583044d1b98275270970d8c16c5fbf19e3647eb357d95'
+        'cacd817278e830e1feb32506f3e7e95ce4f14418344a0a8d236d58df465a9a4b'
+        'bcd9cc86bc76a5135a727e23476328f0db49a94ae570ed239a84ef11f2250f6e')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase

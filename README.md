@@ -146,36 +146,36 @@ packaging repository. A scheduled read-only check runs weekly and opens one
 GitHub issue when review is needed; it never rewrites packaging or publishes a
 kernel automatically.
 
-## Experimental AMD UVD resume correction
+## AMD resume candidates and observed results
 
-This branch adds a candidate fix for the UVD firmware validation failure seen
-on MacBookPro11,5 in dedicated AMD mode after s2idle. It checks the validation
-PASS bit in UVD_FW_STATUS instead of UVD_FW_START. The existing Intel suspend
-patches are retained. Package revision is 7.2.3.arch1-2.
+The UVD firmware validation guard correction is retained. Revision
+7.2.3.arch1-2 completed one successful dedicated-AMD s2idle cycle, but deep S3
+failed the gfx ring test with -110. That comparison also changed the base kernel
+from 7.1.11 to 7.2.3 and does not isolate the UVD patch as the sole cause.
 
-The candidate passes register-model tests but has not been verified on hardware.
-It does not claim to fix the separate gfx_v6_0 timeout after deep S3. Build with
-the existing GitHub Actions workflow; retain the working kernel package and
-boot files before installing or running an explicitly approved suspend test.
+Revision 7.2.3.arch1-3 added the default-off, exact-hardware diagnostic parameter
+`amdgpu.mbp_skip_s3_reset`. A deep-S3 test confirmed the bypass marker, but the
+GPU still failed the gfx ring test after low-level resume. The bypass is not a
+working fix. It remains default-off and must stay off for the ring-fix test.
 
-## Opt-in deep-S3 reset experiment
+## Upstream GFX6 ring initialization candidate
 
-Revision 7.2.3.arch1-3 retains the UVD candidate and adds a default-off
-`amdgpu.mbp_skip_s3_reset` boolean. Only on MacBookPro11,5 with GPU
-1002:6821 / subsystem 106b:0149, enabling it skips the reset immediately
-before deep S3. The existing switcheroo-OFF guard is retained; GPU recovery
-resets, other hardware, and non-S3 paths are unchanged.
+Revision 7.2.3.arch1-4 keeps the same 7.2.3 base and existing patches, and adds:
 
-The purpose is to distinguish the pre-S3 reset from platform power sequencing.
-This is not a proven fix: upstream resets before S3 to handle cases where
-suspend aborts and power is retained. Skipping that reset may break recovery
-from an aborted suspend. The unsafe module parameter taints the kernel when
-enabled. Default-off boot behavior is the same as revision 2.
+1. [Initialize compute rings before CP start](https://github.com/torvalds/linux/commit/c9ddc90f91597ba06c9fcbbfd34f62d4b9b524d0).
+   Initialize all three rings before enabling the shared command processor.
+2. [Clean up rings during reset](https://github.com/torvalds/linux/commit/5e996008db32112bbf25aba39ea43cd162f4c139).
+   Clear stale commands and initialize CPU and hardware ring pointers.
 
-Build remotely with GitHub Actions. After an approved installation and clean
-boot, a separate approved test can set the parameter to Y through sysfs, use
-deep sleep with an RTC alarm, then restore it to N after inspection. Do not
-set it permanently in the boot command line yet. The expected test marker is
-`MBP diagnostic: skipping pre-S3 GPU reset`. Require that marker and a genuine
-S3 resume before interpreting the result. Retain the revision 2 package for
-rollback and s2idle use. No hardware validation has been performed yet.
+Both upstream patches affect the same initialization path that fails during
+S3 resume. They were developed for reset support; they are not confirmed fixes
+for MacBook S3. Both apply to the exact upstream 7.2.3 source with zero fuzz.
+Compilation and complete source validation run on GitHub Actions.
+
+Before installation, preserve the currently installed custom-kernel package and
+boot images. This is an upgrade of `linux-mbp-suspend`, not a parallel kernel
+package. Do not assume a stock-kernel recovery entry is installed on the target.
+After an approved installation, verify a clean dedicated-AMD boot and confirm
+`mbp_skip_s3_reset=N`. Only then perform a separately approved deep-S3 test with
+RTC wake. Check actual S3 resume, gfx/SDMA ring health, UVD/VCE initialization,
+and usable graphics. Build success alone does not establish hardware success.
