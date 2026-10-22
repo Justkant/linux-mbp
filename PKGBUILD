@@ -1,8 +1,8 @@
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
 pkgbase=linux-mbp-suspend
-pkgver=7.2.3.arch1
-pkgrel=4
+pkgver=7.2.11.arch1
+pkgrel=1
 pkgdesc='Linux with MacBookPro11,5 suspend/resume fixes'
 url='https://github.com/archlinux/linux'
 arch=(
@@ -40,7 +40,6 @@ _srctag=v${pkgver%.*}-${pkgver##*.}
 source=(
   https://cdn.kernel.org/pub/linux/kernel/v${pkgver%%.*}.x/${_srcname}.tar.{xz,sign}
   $url/releases/download/$_srctag/linux-$_srctag.patch.zst{,.sig}
-  amdgpu-skip-suspend-reset-when-switcheroo-off.patch
   mtrr-expedite-cache-init-on-resume.patch
   amdgpu-uvd-check-validation-status-register.patch
   amdgpu-mbp-s3-reset-experiment.patch
@@ -53,27 +52,25 @@ validpgpkeys=(
   647F28654894E3BD457199BE38DBBDC86092693E  # Greg Kroah-Hartman
   83BC8889351B5DEBBB68416EB8AC08600F108CDF  # Jan Alexander Steffens (heftig)
 )
-b2sums=('a1d10f1b4422f55c9c87fec0d319fd3dfaf8992f40f9c3d6da1d74e6e78ef220c24cdcd5b689070fb4a287070d1cb3659dc9ea79e5500027854f32c1326c67f7'
+b2sums=('36a455379876a3f452dce7347211ac34ddfda9a445b0b8c0ee92664429a8ea85d2f1a101126b6d748545aaf18e3534f8db53d6110952f3d5487d029ff0f9a800'
         'SKIP'
-        'ee03773babee5126fb061bd7c9fb3b402c6bc96d49bce0a91a8b7a37f544b89ed38b2f4f71543dea355c965a80dfc264e9c6625da7ee5e3e7ada91441f4cf52c'
+        '06f49715b71884a0cbad51ab4b526c1516926cb2429e7a6e485aa48ebf277811dec391ae2264501245654275a84af1df3780bf8bf8df755cf47670d6c9397703'
         'SKIP'
-        'fb95e9ca15361f1e66ff3acafca9d27661ae1405fcc4154bc47495ad027b3f16b354e26b2eaf80d9befa3540a24818745e0228e385868050961bce72a24d6a0f'
         'fac0d44462329dec798b9f24cf1694c2a64e0880ee85db5e55e407907fa5d79f770ba73c59fd4b4b3d3350ad84439d0d50a4eeb47aede64fdcd5cac549d3fadb'
         'b4454e5e769d96ded29ec0fa12dde28e7cc5314462a2ae2c5e670883618e805d97065a7233c9f255f5b8039fb1f393f52e059f507d9b21b50635f63e19b402b1'
-        '699af910150c25f0be2fa7fa235fa20a0d12bf34b7540fa2d57310608295d938c09ecf355a412dfbf55f436dec22dd1b734e8112c7c070166f03761054486f59'
+        '19003373d3ba0092c4e156d87af4e6070a04c9d29be9c09db6f7fb675f20dde817ffa5d7ed2319597846ec6234ba94074d17149f3caa5d86f97c7ec7d6c29a0d'
         'c28006df684aac05bd56ecd3e570473999fb9e0077ee227b6ee75b6cc71dedd27590741cee249548a04f6dec49e96a80c7b2e117acd7ca311a6cefcee318023b'
         '6a10c5349b28147a741f76255ff02a9123692f9ca03e826a5991e3e2345cb48ce442516cc4a577936cb8e0b8ee288cdfd87da1ab15942e7580663ad8a53a8318')
-b2sums_x86_64=('da56ce9b2f28b75436c52afbc16913027796d98b467575920d82e15fb626689438e69cc07fedde77a96f2cb2ce10b510a873c43f43105ccec9a44e656b0624e1')
+b2sums_x86_64=('58babcf7bed396598de1a7c010292aebb56b2c726f9d8d28344049646d5ed814489db0e22a4e62718e5e6dcc94c581858c17b235e88dc3263fa78934d2a84104')
 
 # https://www.kernel.org/pub/linux/kernel/v7.x/sha256sums.asc
-sha256sums=('8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03'
-            'SKIP'
-            '8c917e7ba5cbd93491f18d11d6adbdcb1ea64fd6f8b47a0fce5d04a0ac9aa4f6'
-            'SKIP'
-            '4c5084e84f10b4886106bcc46d66d9b1d67250ce41766ba180fc5e3d04c3f09b'
-            '6577329bcae84114ba77080b0cbc082c9e23246d5a02163f414d0a0d86abafe6'
-            'e907888d7d64da01a6b5b50e9e97f31fc319cb4c5179cc7955bb3b96f40d2e83'
-            '84dde49212f6e2a649d583044d1b98275270970d8c16c5fbf19e3647eb357d95'
+sha256sums=('fd0fc479f983a8c05313f13e9c36330fe6651cf725396748c40d5cd93fa1e6a4'
+        'SKIP'
+        '741d473c4db335d97d9e1d9b8be9337090522550804fe6454ba336d21e580fd6'
+        'SKIP'
+        '6577329bcae84114ba77080b0cbc082c9e23246d5a02163f414d0a0d86abafe6'
+        'e907888d7d64da01a6b5b50e9e97f31fc319cb4c5179cc7955bb3b96f40d2e83'
+        '279f6b503fb9bac9af0855c91007092cfd7331d33c5d302caa9888739cb5b242'
         'cacd817278e830e1feb32506f3e7e95ce4f14418344a0a8d236d58df465a9a4b'
         'bcd9cc86bc76a5135a727e23476328f0db49a94ae570ed239a84ef11f2250f6e')
 
@@ -95,7 +92,7 @@ prepare() {
     src="${src%.zst}"
     [[ $src = *.patch ]] || continue
     echo "Applying patch $src..."
-    patch -Np1 < "../$src"
+    patch --batch --forward --fuzz=0 -Np1 < "../$src"
   done
 
   echo "Setting config..."

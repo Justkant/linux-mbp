@@ -11,17 +11,29 @@ without implying that every patch is limited to suspend.
 
 ## Patch series
 
-1. `amdgpu-skip-suspend-reset-when-switcheroo-off.patch`
-   skips the deep-suspend ASIC reset only when DRM switcheroo has already put
-   the discrete AMD GPU in `DRM_SWITCH_POWER_OFF`.
-2. `mtrr-expedite-cache-init-on-resume.patch`
-   backports Chris Paulson-Ellis's pending x86/MTRR fix for very slow secondary
-   CPU bring-up after S3 on a mid-2015 MacBook Pro. The upstream submission is
-   <https://www.spinics.net/lists/kernel/msg6037880.html>.
+The 7.2.11 update retains these five patches from the installed revision 4:
 
-The MTRR patch is not yet merged upstream. A successful build proves only that
-it applies and compiles; its resume warning and measured CPU-hotplug timings are
-the runtime acceptance criteria.
+1. `mtrr-expedite-cache-init-on-resume.patch`: early MTRR restoration for slow
+   secondary CPU bring-up after S3; original submission by Chris Paulson-Ellis:
+   <https://www.spinics.net/lists/kernel/msg6037880.html>.
+2. `amdgpu-uvd-check-validation-status-register.patch`: check firmware validation
+   status in the status register rather than the key-selection register.
+3. `amdgpu-mbp-s3-reset-experiment.patch`: exact-hardware, default-off reset
+   diagnostic. Keep `amdgpu.mbp_skip_s3_reset` disabled; it did not fix AMD S3.
+4. `amdgpu-gfx6-initialize-rings-before-cp-start.patch`: upstream GFX6 ring
+   initialization ordering backport.
+5. `amdgpu-gfx6-clear-rings-on-init.patch`: upstream GFX6 ring clearing backport.
+
+The original switcheroo-OFF suspend guard is now part of upstream Linux, in
+[eadb85cca111](https://github.com/torvalds/linux/commit/eadb85cca111152bd334b861fb53747ab851d13a),
+and its duplicate local patch has been removed. The MTRR and remaining AMD
+patches still require local application against the 7.2.11 stable source.
+
+This branch updates the base kernel and official Arch configuration. It does
+not establish that dedicated-AMD deep resume works. The last recorded revision-4
+AMD deep-S3 test failed without enough persisted logs to identify the stage.
+Build success and patch application must be followed by separately approved
+hardware testing.
 
 ## CI build
 
@@ -62,35 +74,40 @@ jobs. Set `MBP_KERNEL_JOBS=4`, for example, to change the local parallelism.
 
 ## Installation safety
 
-This package installs alongside Arch's stock `linux` package. It must not
-conflict with or replace `linux`. Keep the stock kernel and AMD rEFInd path as
-recovery choices.
+This package can install alongside Arch's stock `linux` package because it does
+not conflict with or replace it. A validated machine may instead use this
+package as its only installed kernel, with explicit Intel and AMD rEFInd entries
+pointing to the same custom kernel and matched initramfs.
 
-Before installing, verify the package metadata and available `/boot` space:
+Before installing, preserve the currently installed custom-kernel package,
+kernel, initramfs and boot configuration as a verified rollback set. This is an
+upgrade of the existing custom package. Verify the package metadata and
+available `/boot` space:
 
 ```bash
 pacman -Qip ./linux-mbp-suspend-*.pkg.tar.zst
+pacman -Q linux-mbp-suspend
 df -B1 /boot
 ```
 
-On the target MacBook, `/boot` is normally read-only and has little spare
-space. Do not enable a fallback image. Install only after confirming at least
-80,000,000 bytes are free:
+The target MacBook currently mounts `/boot` read-only. Do not enable a
+fallback image. Install only after confirming at least 80,000,000 bytes are
+free; restore the read-only mount after verifying the installation:
 
 ```bash
 sudo mount -o remount,rw /boot
 sudo pacman -U ./linux-mbp-suspend-*.pkg.tar.zst
-pacman -Q linux linux-mbp-suspend
-ls -lh /boot/vmlinuz-linux /boot/initramfs-linux.img \
-  /boot/vmlinuz-linux-mbp-suspend /boot/initramfs-linux-mbp-suspend.img
+pacman -Q linux-mbp-suspend
+ls -lh /boot/vmlinuz-linux-mbp-suspend \
+  /boot/initramfs-linux-mbp-suspend.img
 cat /etc/mkinitcpio.d/linux-mbp-suspend.preset
 sync
 sudo mount -o remount,ro /boot
 ```
 
-Do not reboot if package installation or initramfs generation fails. Recover
-while `/boot` is still writable, then retain the stock kernel as the first boot
-choice.
+Do not reboot if package installation or initramfs generation fails. Repair or
+reinstall the custom package while the running kernel and userspace remain
+available.
 
 ## Runtime acceptance test
 
@@ -132,9 +149,10 @@ For each update:
 1. Review the new official `PKGBUILD` and configuration changes.
 2. Copy the official version, source checksums, configuration, and any signing
    key updates into this repository.
-3. Keep the custom package name and append both local patches after Arch's
-   patchset in `source`.
-4. Run `makepkg --verifysource` and verify both patches apply with zero fuzz.
+3. Keep the custom package name and append the retained local patches after
+   Arch's patchset in `source`.
+4. Run `makepkg --verifysource` and verify all retained patches apply with zero
+   fuzz.
 5. Push a branch and let CI compile it before merging or installing anything.
 
 An upstream kernel update is intentionally not installed automatically. A
@@ -179,3 +197,16 @@ After an approved installation, verify a clean dedicated-AMD boot and confirm
 `mbp_skip_s3_reset=N`. Only then perform a separately approved deep-S3 test with
 RTC wake. Check actual S3 resume, gfx/SDMA ring health, UVD/VCE initialization,
 and usable graphics. Build success alone does not establish hardware success.
+
+## 7.2.11 update branch
+
+`update/7.2.11` starts at installed-source commit
+`b6c57b9bfe5848090e4c7e1bfe05846e41885652`. It tracks official Arch packaging
+commit `0c178d550ec6392265d3a443333229823634bd08` for `7.2.11.arch1-1`,
+retaining the single `linux-mbp-suspend` package and its existing build scope.
+Patch application rejects fuzz and reversed/already-applied patches. The
+expected release is `7.2.11-arch1-1-mbp-suspend`.
+
+The historical revision-4 candidate description above is retained as context;
+its subsequent deep-S3 test failed, with no persisted evidence identifying the
+failure stage. No dedicated-AMD sleep fix is claimed by this update.

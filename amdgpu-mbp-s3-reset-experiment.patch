@@ -11,7 +11,7 @@ PM_SUSPEND_MEM. Preserve the switcheroo-OFF guard, runtime PM, hibernation,
 other hardware, and GPU recovery resets. Enabling the unsafe parameter
 marks the kernel tainted; do not mistake that expected marker for a crash.
 
-Apply after amdgpu-skip-suspend-reset-when-switcheroo-off.patch.
+The switcheroo-OFF guard is already present in upstream Linux 7.2.11.
 ---
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
