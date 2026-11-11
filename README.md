@@ -11,23 +11,25 @@ without implying that every patch is limited to suspend.
 
 ## Patch series
 
-The 7.2.11 update retains these five patches from the installed revision 4:
+The 7.2.15 update retains these four patches from the installed 7.2.11 kernel:
 
 1. `mtrr-expedite-cache-init-on-resume.patch`: early MTRR restoration for slow
    secondary CPU bring-up after S3; original submission by Chris Paulson-Ellis:
    <https://www.spinics.net/lists/kernel/msg6037880.html>.
-2. `amdgpu-uvd-check-validation-status-register.patch`: check firmware validation
-   status in the status register rather than the key-selection register.
-3. `amdgpu-mbp-s3-reset-experiment.patch`: exact-hardware, default-off reset
+2. `amdgpu-mbp-s3-reset-experiment.patch`: exact-hardware, default-off reset
    diagnostic. Keep `amdgpu.mbp_skip_s3_reset` disabled; it did not fix AMD S3.
-4. `amdgpu-gfx6-initialize-rings-before-cp-start.patch`: upstream GFX6 ring
+3. `amdgpu-gfx6-initialize-rings-before-cp-start.patch`: upstream GFX6 ring
    initialization ordering backport.
-5. `amdgpu-gfx6-clear-rings-on-init.patch`: upstream GFX6 ring clearing backport.
+4. `amdgpu-gfx6-clear-rings-on-init.patch`: upstream GFX6 ring clearing backport.
 
 The original switcheroo-OFF suspend guard is now part of upstream Linux, in
 [eadb85cca111](https://github.com/torvalds/linux/commit/eadb85cca111152bd334b861fb53747ab851d13a),
-and its duplicate local patch has been removed. The MTRR and remaining AMD
-patches still require local application against the 7.2.11 stable source.
+and its duplicate local patch has been removed. The local UVD status-register patch is superseded by upstream
+[800ea86e83e1](https://github.com/torvalds/linux/commit/800ea86e83e137395eba54103e5c459c2bc9965f),
+backported as [123e1d47db26](https://github.com/gregkh/linux/commit/123e1d47db26da2387c8ec0e0083a21656ac8195).
+Upstream checks for a nonzero firmware key-selection register to avoid repeating
+validation. The MTRR, default-off reset diagnostic, and two GFX6 patches still
+require local application against the 7.2.15 stable source.
 
 This branch updates the base kernel and official Arch configuration. It does
 not establish that dedicated-AMD deep resume works. The last recorded revision-4
@@ -166,7 +168,7 @@ kernel automatically.
 
 ## AMD resume candidates and observed results
 
-The UVD firmware validation guard correction is retained. Revision
+The earlier local UVD correction is superseded as described above. Revision
 7.2.3.arch1-2 completed one successful dedicated-AMD s2idle cycle, but deep S3
 failed the gfx ring test with -110. That comparison also changed the base kernel
 from 7.1.11 to 7.2.3 and does not isolate the UVD patch as the sole cause.
@@ -198,14 +200,14 @@ After an approved installation, verify a clean dedicated-AMD boot and confirm
 RTC wake. Check actual S3 resume, gfx/SDMA ring health, UVD/VCE initialization,
 and usable graphics. Build success alone does not establish hardware success.
 
-## 7.2.11 update branch
+## 7.2.15 update branch
 
-`update/7.2.11` starts at installed-source commit
-`b6c57b9bfe5848090e4c7e1bfe05846e41885652`. It tracks official Arch packaging
-commit `0c178d550ec6392265d3a443333229823634bd08` for `7.2.11.arch1-1`,
+`update/7.2.15` starts at installed-source commit
+`1252761d82c3c336e5254488115977b554d09652`. It tracks official Arch packaging
+commit `a6ef53be1f83078a3311939f9b7df866853d2a04` for `7.2.15.arch1-1`,
 retaining the single `linux-mbp-suspend` package and its existing build scope.
 Patch application rejects fuzz and reversed/already-applied patches. The
-expected release is `7.2.11-arch1-1-mbp-suspend`.
+expected release is `7.2.15-arch1-1-mbp-suspend`.
 
 The historical revision-4 candidate description above is retained as context;
 its subsequent deep-S3 test failed, with no persisted evidence identifying the
